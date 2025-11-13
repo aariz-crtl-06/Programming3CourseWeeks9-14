@@ -2,10 +2,15 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    public float moveSpeed = 5f;
+
     public enum FacingDirection
     {
         left, right
     }
+
+    public FacingDirection direction;
+    private float moveInput;
 
     void Start()
     {
@@ -14,29 +19,49 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // The input from the player needs to be determined and
-        // then passed in the to the MovementUpdate which should
-        // manage the actual movement of the character.
-        Vector2 playerInput = new Vector2();
-        MovementUpdate(playerInput);
+        moveInput = Input.GetAxisRaw("Horizontal");
+        MovementUpdate();
+        UpdateFacingDirection();
     }
 
-    private void MovementUpdate(Vector2 playerInput)
+    private void MovementUpdate()
     {
+        transform.position += new Vector3(moveInput * moveSpeed * Time.deltaTime, 0f, 0f);
+    }
 
+    private void UpdateFacingDirection()
+    {
+        if (moveInput > 0)
+        {
+            direction = FacingDirection.right;
+        }
+
+        if (moveInput < 0)
+        {
+            direction = FacingDirection.left;
+        }
     }
 
     public bool IsWalking()
     {
-        return false;
+        if (moveInput != 0)
+        {
+            return true;
+        }
+
+        else
+        {
+            return false;
+        }
     }
+
     public bool IsGrounded()
     {
-        return false;
+        return true;
     }
 
     public FacingDirection GetFacingDirection()
     {
-        return FacingDirection.left;
+        return direction;
     }
 }
