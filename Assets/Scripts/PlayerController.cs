@@ -2,7 +2,14 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public float moveSpeed = 5f;
+    
+    Rigidbody2D rb;
+
+    public float maxSpeed = 14f;
+    public float accel = 12f;
+    public float decel = 60f;
+    public float airAccel = 8f;
+    public float airDecel = 30f;
 
     public enum FacingDirection
     {
@@ -14,20 +21,59 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
-        
+        rb = GetComponent<Rigidbody2D>();
     }
 
     void Update()
     {
         moveInput = Input.GetAxisRaw("Horizontal");
-        MovementUpdate();
         UpdateFacingDirection();
     }
 
-    private void MovementUpdate()
+    void FixedUpdate()
     {
-        transform.position += new Vector3(moveInput * moveSpeed * Time.deltaTime, 0f, 0f);
+        MovementUpdate();
     }
+
+  
+        private void MovementUpdate()
+        {
+        float targetSpeed = moveInput * maxSpeed;
+        float speedDiff = targetSpeed - rb.linearVelocity.x;
+
+        float accelRate = 0f;
+
+        
+        if (IsGrounded())
+        {
+            if (Mathf.Abs(targetSpeed) > 0.01f)
+            {
+                accelRate = accel;
+            }
+
+            else
+            {
+                accelRate = decel;
+            }
+        }
+
+        else
+        {
+            if (Mathf.Abs(targetSpeed) > 0.01f)
+            {
+                accelRate = airAccel;
+            }
+            else
+            {
+                accelRate = airDecel;
+            }
+        }
+
+        float movement = speedDiff * accelRate;
+
+        rb.AddForce(Vector2.right * movement);
+        }
+
 
     private void UpdateFacingDirection()
     {
