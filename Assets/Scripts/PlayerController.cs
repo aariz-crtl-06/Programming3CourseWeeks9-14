@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
@@ -12,6 +13,18 @@ public class PlayerController : MonoBehaviour
     public float deceleration = 60f;
     public float airAccel = 8f;
     public float airDecel = 30f;
+
+    //Apex height and time to create accurate gravity and jump velocity
+    public float apexHeight = 5f;
+    public float apexTime = 0.55f;
+
+    public float gravity = 0f;
+    public float jumpVelocity = 0f;
+
+    public float terminalSpeed = 20f;
+
+    public float coyoteTime = 0.5f;
+    private float coyoteCounter;
 
     //Ground check to see if player is in contact with any ground objects
     int groundContacts = 0;
@@ -29,6 +42,15 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+
+        //Set gravity scale to 0 to disable built in gravity
+        rb.gravityScale = 0f;
+
+        //Manually calculate gravity
+        gravity = (2f * apexHeight) / (apexTime * apexTime);
+
+        // Calculate how fast the player must move upwards initially
+        jumpVelocity = gravity * apexTime;
     }
 
     //Get axis to access movement input
@@ -36,12 +58,45 @@ public class PlayerController : MonoBehaviour
     {
         moveInput = Input.GetAxisRaw("Horizontal");
         UpdateFacingDirection();
+
+        //When grounded, reset the coyote counter. When in the air, then this counter depletes, giving the player some time to jump after leaving a platform
+        if (IsGrounded())
+        {
+            coyoteCounter = coyoteTime;
+        }
+        else
+        {
+            coyoteCounter -= Time.deltaTime;
+        }
+
+        if (Input.GetButtonDown("Jump") && coyoteCounter > 0f)
+        {
+            Jump();
+        }
     }
 
     //Runs in fixed update to use physics
     void FixedUpdate()
     {
         MovementUpdate();
+
+        rb.AddForce(Vector2.down * gravity * rb.mass);
+
+        //terminal velocity to limit falling speed from going too much
+        if (rb.linearVelocity.y < -terminalSpeed)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, -terminalSpeed);
+        }
+
+    }
+
+    //Jump function that applies a a jump velocity when the jump button is pressed and the player is grounded
+    void Jump()
+    {
+        if(Input.GetButtonDown("Jump") && IsGrounded())
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpVelocity);
+        }
     }
 
         private void MovementUpdate()
