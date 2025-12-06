@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
@@ -25,6 +25,11 @@ public class PlayerController : MonoBehaviour
 
     public float coyoteTime = 0.5f;
     private float coyoteCounter;
+
+    public GameObject dashEffect;
+
+    bool canDash = true;
+
 
     //Ground check to see if player is in contact with any ground objects
     int groundContacts = 0;
@@ -73,6 +78,8 @@ public class PlayerController : MonoBehaviour
         {
             Jump();
         }
+
+        Dash();
     }
 
     //Runs in fixed update to use physics
@@ -97,6 +104,48 @@ public class PlayerController : MonoBehaviour
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpVelocity);
         }
+    }
+
+    void Dash()
+    {
+        if (Input.GetButtonDown("Jump") && !IsGrounded() && canDash == true)
+        {
+            float x = 0f;
+
+            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            {
+                x = 1f;
+            }
+            else if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+            {
+                x = -1f;
+            }
+
+            // vertical dash
+            if (x == 0f)
+            {
+                rb.linearVelocity = new Vector2(0f, jumpVelocity * 1.2f);
+                dashEffect.SetActive(true);
+            }
+
+            // horizontal dash
+            else
+            {
+                Vector2 dashDir = new Vector2(x, 0f);
+                dashDir = dashDir.normalized;
+                rb.linearVelocity = dashDir * jumpVelocity * 2f;
+                dashEffect.SetActive(true);
+            }
+
+            canDash = false;
+        }
+
+        if (IsGrounded())
+        {
+            canDash = true;
+            dashEffect.SetActive(false);
+        }
+
     }
 
         private void MovementUpdate()
