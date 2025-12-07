@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections;
+using System.Runtime.CompilerServices;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
@@ -27,9 +28,13 @@ public class PlayerController : MonoBehaviour
     private float coyoteCounter;
 
     public GameObject dashEffect;
+    public GameObject hoverEffect;
 
     bool canDash = true;
+    public bool isDashed = false;
 
+    public float downStrikeSpeed = 60f;
+    public bool isLaunched = false;
 
     //Ground check to see if player is in contact with any ground objects
     int groundContacts = 0;
@@ -80,6 +85,7 @@ public class PlayerController : MonoBehaviour
         }
 
         Dash();
+        StartCoroutine(Hover());
     }
 
     //Runs in fixed update to use physics
@@ -126,6 +132,8 @@ public class PlayerController : MonoBehaviour
             {
                 rb.linearVelocity = new Vector2(0f, jumpVelocity * 1.2f);
                 dashEffect.SetActive(true);
+                isDashed = true;
+
             }
 
             // horizontal dash
@@ -135,6 +143,7 @@ public class PlayerController : MonoBehaviour
                 dashDir = dashDir.normalized;
                 rb.linearVelocity = dashDir * jumpVelocity * 2f;
                 dashEffect.SetActive(true);
+                isDashed = true;
             }
 
             canDash = false;
@@ -144,6 +153,30 @@ public class PlayerController : MonoBehaviour
         {
             canDash = true;
             dashEffect.SetActive(false);
+            isDashed = false;
+        }
+
+    }
+
+    IEnumerator Hover()
+    {
+        if(!IsGrounded() && Input.GetKeyDown(KeyCode.S))
+        {
+            float originalGravity =gravity;
+            gravity = 0.5f;
+            yield return new WaitForSeconds(0.5f);
+            isLaunched = true;
+            hoverEffect.SetActive(true);
+
+            rb.linearVelocity=Vector2.down * downStrikeSpeed;
+            gravity = originalGravity;
+
+            yield return new WaitForSeconds(0.3f);
+
+            isLaunched = false;
+            isDashed = false;
+            hoverEffect.SetActive(false);
+
         }
 
     }
@@ -227,6 +260,8 @@ public class PlayerController : MonoBehaviour
     {
         return groundContacts > 0;
     }
+
+    
 
     //Get facing direction
     public FacingDirection GetFacingDirection()

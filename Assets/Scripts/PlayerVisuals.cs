@@ -8,11 +8,15 @@ public class PlayerVisuals : MonoBehaviour
 
     private readonly int isWalkingHash = Animator.StringToHash("IsWalking");
     private readonly int isGroundedHash = Animator.StringToHash("IsGrounded");
+    private readonly int isPowerChargeHash = Animator.StringToHash("isDashing");
+    private readonly int isLaunchedHash = Animator.StringToHash("isLaunched");
 
     void Update()
     {
         animator.SetBool(isWalkingHash, playerController.IsWalking());
         animator.SetBool(isGroundedHash, playerController.IsGrounded());
+        animator.SetBool(isPowerChargeHash, playerController.isDashed);
+        animator.SetBool(isLaunchedHash, playerController.isLaunched);
 
         switch (playerController.GetFacingDirection())
         {
